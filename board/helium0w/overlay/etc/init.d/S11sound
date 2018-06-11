@@ -1,0 +1,15 @@
+#! /bin/sh
+
+case "$1" in
+	start|"")
+		echo "Sound setup"
+		/root/setup-sound.sh
+		;;
+	stop)
+		echo "Sound shutdown..."
+		;;
+	*)
+		echo "Usage: sound {start|stop}" >&2
+		exit 1
+		;;
+esac

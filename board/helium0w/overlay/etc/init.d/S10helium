@@ -1,0 +1,16 @@
+#! /bin/sh
+
+case "$1" in
+	start|"")
+		echo "Here is helium!"
+		modprobe brcmfmac
+		
+		;;
+	stop)
+		echo "Helium shutdown..."
+		;;
+	*)
+		echo "Usage: helium {start|stop}" >&2
+		exit 1
+		;;
+esac
