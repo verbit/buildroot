@@ -1,0 +1,14 @@
+#!/bin/sh
+#ls /dev
+#ls /
+mount -t ext4 /dev/mmcblk0p4 /overlay
+mkdir -p /overlay/upper
+mkdir -p /overlay/work
+ls /overlay
+mount -t overlay overlay -o lowerdir=/,upperdir=/overlay/upper,workdir=/overlay/work "overlayfs:/overlay" /mnt
+cd /mnt
+mkdir -p rom
+pivot_root . rom
+mount -o move /rom/dev /dev
+mount -o move /rom/overlay /overlay
+exec chroot . /sbin/init

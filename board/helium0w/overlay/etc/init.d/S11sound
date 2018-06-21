@@ -3,7 +3,7 @@
 case "$1" in
 	start|"")
 		echo "Sound setup"
-		/root/setup-sound.sh
+		#/root/setup-sound.sh
 		;;
 	stop)
 		echo "Sound shutdown..."

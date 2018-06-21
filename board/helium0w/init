@@ -1,0 +1,65 @@
+#!/bin/busybox sh
+/bin/busybox --install -s
+
+echo "Mount /proc"
+mkdir -p /proc
+mount -t proc proc /proc
+
+echo "Mount /dev"
+mkdir -p /dev
+mount -t devtmpfs devtmpfs /dev
+
+echo "Mount /sys"
+mkdir -p /sys
+mount -t sysfs sysfs /sys
+
+echo "Mount /tmp"
+mkdir -p /tmp
+mount -t tmpfs tmpfs /tmp
+
+mkdir -p /mnt /rom /overlay
+echo "Mount EXT4"
+mount -t ext4 /dev/mmcblk0p2 /overlay
+mkdir -p /overlay/upper /overlay/work
+
+if [ -f /overlay/sysupgrade.tar.gz ]; then
+  TMPDIR=`mktemp -d`
+  printf "extracting to ${TMPDIR}..."
+  tar xzf /overlay/sysupgrade.tar.gz -C $TMPDIR
+  echo " done"
+
+  #mkfs.vfat /dev/mmcblk0p1
+  mkdir -p /boot
+  mount /dev/mmcblk0p1 /boot  
+  #find /boot/ | rm -rf
+  printf "updating bootloader..."
+  rm -rf /boot/*
+  cp -r $TMPDIR/boot/. /boot/
+  echo " done"
+  umount /boot
+  
+  printf "updating rootfs..."
+  cp $TMPDIR/rootfs.squashfs /overlay/
+  echo " done"
+
+  rm -rf /overlay/sysupgrade.tar.gz $TMPDIR
+fi
+
+echo "Mount SQUASHFS"
+mount -t squashfs /overlay/rootfs.squashfs /rom
+echo "Mount OVERLAY"
+mount -t overlay overlay -o lowerdir=/rom,upperdir=/overlay/upper,workdir=/overlay/work /mnt
+
+
+echo "Move mounts"
+mkdir -p /mnt/rom /mnt/overlay /mnt/proc /mnt/dev /mnt/sys
+mount -o move /proc /mnt/proc
+mount -o move /dev /mnt/dev
+mount -o move /sys /mnt/sys
+
+mount -o move /rom /mnt/rom
+mount -o move /overlay /mnt/overlay
+
+echo "Switch root"
+#exec sh
+exec switch_root /mnt /sbin/init
